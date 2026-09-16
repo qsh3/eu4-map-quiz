@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>罗马血统测试 · 全地图</title>
+<title>EU4 纯度测试</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23101d26'/%3E%3Cpath d='M16 3 20 12 29 16 20 20 16 29 12 20 3 16 12 12Z' fill='%23d9b77a'/%3E%3C/svg%3E">
 <style>
   *{box-sizing:border-box} :root{color-scheme:dark;font-family:Inter,"Microsoft YaHei",system-ui,sans-serif;color:#edf0ed;background:#10191f}
@@ -80,7 +80,6 @@
   .elapsed-result span{font-size:14px;color:#9eafb7}
   .elapsed-result strong{font-size:24px;font-weight:500;font-variant-numeric:tabular-nums}
   #finalScore{font:64px Georgia,serif;color:#18e6b4;margin-bottom:6px}
-  #rating{font-size:34px;font-weight:700;color:#d9b77a;letter-spacing:4px;margin:0 0 18px;text-shadow:0 0 18px rgba(217,183,122,.4)}
   #scopeWrap[hidden]{display:none}
   .result-label{font-size:14px;color:#9eafb7}
   #review{font-size:14px;line-height:1.8;color:#c7b08d;max-height:90px;overflow:auto;margin-top:10px}
@@ -133,7 +132,6 @@
     .next-controls kbd{display:none}
     .flag{width:54px;height:37px}
     #finalScore{font-size:52px;margin-bottom:4px}
-    #rating{font-size:27px;letter-spacing:2px;margin-bottom:14px}
     #review{max-height:130px}
   }
   @media(max-width:380px){
@@ -145,7 +143,7 @@
 <body>
 
 <header>
-  <div class="brand"><span class="compass">✥</span><div><b>罗马血统测试</b><span id="tagline">全地图</span></div></div>
+  <div class="brand"><span class="compass">✥</span><div><b>EU4 纯度测试</b><span id="tagline">全地图</span></div></div>
   <div class="edition" id="edition">加载中…</div>
   <button id="sound" aria-pressed="true">音效：开</button>
   <button id="restart">重新开始</button>
@@ -184,7 +182,7 @@
 
     <div id="startPanel" class="panel">
       <div class="panel-inner">
-        <span class="kicker">ROMAN BLOODLINE TEST · WORLD MAP</span>
+        <span class="kicker">EU4 PURITY TEST · WORLD MAP</span>
         <h2>选择玩法，开始挑战</h2>
         <div class="settings-row">
           <div><label for="playmode">玩法</label>
@@ -238,7 +236,6 @@
         <h2 id="resultTitle">本轮挑战完成</h2>
         <span class="result-label">本局正确率</span>
         <div id="finalScore"></div>
-        <div id="rating"></div>
         <div class="elapsed-result"><span>总耗时</span><strong id="totalElapsed">—</strong></div>
         <p id="summary"></p>
         <div id="review"></div>
@@ -735,15 +732,6 @@ function modeNeed() {
   return m === 'normal' ? 10 : m === 'challenge' ? 30 : m === 'nightmare' ? 50 : Infinity;
 }
 
-function ratingFor(acc) {
-  if (acc > 90) return '精罗落泪';
-  if (acc > 60) return '真正的罗马人';
-  if (acc > 40) return '神罗也算罗？';
-  if (acc > 20) return '精罗震怒';
-  if (acc < 10) return '奥斯曼人来了';
-  return '精罗震怒';
-}
-
 function flagUrl(name) { return FLAG_DATA[name] || (FLAG_BASE + encodeURIComponent(name)); }
 
 function updateSetup() {
@@ -888,7 +876,6 @@ function showResults() {
   const acc = completed.size ? score / completed.size * 100 : 0;
   $('resultPanel').hidden = false;
   $('finalScore').textContent = completed.size ? acc.toFixed(1) + '%' : '—';
-  $('rating').textContent = completed.size ? ratingFor(acc) : '—';
   $('totalElapsed').textContent = formatElapsed((gameEndedAt === null ? performance.now() : gameEndedAt) - gameStartedAt);
   $('resultTitle').textContent = (isCountryMode() ? '猜国家 · ' : '猜地块 · ') + ({
     normal: '正常模式完成', challenge: '挑战模式完成', nightmare: '噩梦模式完成', complete: '完全模式完成'
@@ -933,7 +920,6 @@ function resetGame() {
   $('next').disabled = true;
   $('target').textContent = '看地名，点出它的地块';
   $('eyebrow').textContent = '准备探索';
-  $('rating').textContent = '';
   $('message').textContent = '选择题库范围，开始挑战。';
   $('round').textContent = '—';
   $('time').textContent = '不限时';
