@@ -61,6 +61,7 @@
   .region-card input{width:18px;height:18px;accent-color:#18e6b4;flex-shrink:0}
   #selectionCount{margin-top:12px;color:#18e6b4;font-size:14px}
   .settings-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .settings-row-3{grid-template-columns:1fr 1fr 1fr}
   #modeHelp{font-size:14px;margin-top:12px;min-height:24px}
   footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;gap:15px}
   footer>span{color:#90a0a8;font-size:13px}
@@ -210,7 +211,7 @@
           <div id="regionCards" class="region-grid"></div>
           <p id="selectionCount" role="status"></p>
         </fieldset>
-        <div class="settings-row">
+        <div class="settings-row settings-row-3">
           <div><label for="duration">每题限时</label>
             <select id="duration">
               <option value="0" selected>不限时</option>
@@ -222,6 +223,13 @@
             <select id="only1444">
               <option value="1" selected>仅 1444 年存在的国家</option>
               <option value="0">全部国家（含可成立国）</option>
+            </select></div>
+          <div><label for="minProv">最低地块数</label>
+            <select id="minProv">
+              <option value="1" selected>所有国家</option>
+              <option value="3">三块及以上</option>
+              <option value="5">五块及以上</option>
+              <option value="10">十块及以上</option>
             </select></div>
         </div>
         <p id="modeHelp"></p>
@@ -329,6 +337,7 @@ let dpr = 1;
 
 let eligibleIds = new Set();
 let eligibleTags = new Set();
+let tagSize = new Map();
 let selectedGroups = new Set();
 let state = 'setup';
 let queue = [], index = 0, score = 0, active = false, seconds = 0, deadline = 0;
@@ -489,6 +498,8 @@ async function loadMap() {
     });
 
     provinceCount = new Set(provinces.map(p => p.eu4Id)).size;
+    tagSize = new Map();
+    for (const p of provinces) tagSize.set(p.tag, (tagSize.get(p.tag) || 0) + 1);
 
     loadingText.textContent = '正在构建拾取缓冲...';
     buildPickBufferAndBBoxes();
@@ -692,12 +703,16 @@ function computeEligible() {
   eligibleTags = new Set();
   const all = $('scope').value === 'all';
   const only1444 = $('only1444').value === '1';
+  const minProv = Number($('minProv').value);
   for (const p of provinces) {
     if (p.kind !== 'country') continue;
     if (!all && !selectedGroups.has(p.continent)) continue;
-    if (isCountryMode() && only1444) {
-      const m = META[p.tag];
-      if (m && m[0] === 0) continue;
+    if (isCountryMode()) {
+      if (only1444) {
+        const m = META[p.tag];
+        if (m && m[0] === 0) continue;
+      }
+      if (minProv > 1 && (tagSize.get(p.tag) || 0) < minProv) continue;
     }
     eligibleIds.add(p.idx);
     eligibleTags.add(p.tag);
@@ -739,6 +754,7 @@ function updateSetup() {
   const country = isCountryMode();
   $('tagline').textContent = country ? '全地图 · 认国旗' : '全地图 · 猜地块';
   $('only1444').disabled = !country;
+  $('minProv').disabled = !country;
   $('scopeWrap').hidden = false;
   const scope = $('scope').value;
   $('regionPicker').hidden = scope !== 'regions';
@@ -1067,6 +1083,7 @@ $('scope').onchange = updateSetup;
 $('mode').onchange = updateSetup;
 $('playmode').onchange = updateSetup;
 $('only1444').onchange = updateSetup;
+$('minProv').onchange = updateSetup;
 $('start').onclick = start;
 $('again').onclick = start;
 $('restart').onclick = resetGame;
