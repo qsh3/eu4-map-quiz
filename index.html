@@ -482,6 +482,13 @@ async function loadMap() {
       const eu4Id = extractProvinceId(el, clsParts);
       let path;
       try { path = new Path2D(d); } catch (e) { return; }
+      let bbox = null;
+      try {
+        const bb = el.getBBox();
+        if (bb && bb.width > 0 && bb.height > 0) {
+          bbox = [bb.x - 1, bb.y - 1, bb.x + bb.width + 1, bb.y + bb.height + 1];
+        }
+      } catch (e) { /* getBBox 不可用时回退到像素扫描 */ }
       provinces.push({
         idx: pid,
         eu4Id,
@@ -491,7 +498,7 @@ async function loadMap() {
               : (kind === 'wasteland' ? '不可通行' : '未殖民'),
         continent: (META[tag] && META[tag][2]) || '-',
         path,
-        bbox: null,
+        bbox,
         status: 'unanswered'
       });
       pid++;
@@ -570,6 +577,7 @@ function buildPickBufferAndBBoxes() {
     }
   }
   for (let i = 0; i < provinces.length; i++) {
+    if (provinces[i].bbox) continue;  // getBBox 已提供精确包围盒
     const bb = bboxMap[i + 1];
     provinces[i].bbox = bb ? [bb[0] - 1, bb[1] - 1, bb[2] + 1, bb[3] + 1] : null;
   }
