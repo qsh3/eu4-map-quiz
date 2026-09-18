@@ -453,6 +453,18 @@ async function fetchWithRetry(url, label, timeoutMs = 25000, retries = 1) {
   }
 }
 
+/*
+ * 上游地图 eu4-political.svg（primislas/eu4-svg-map, 1.30.0）把「鄂罗奇」和「赫哲」两个 TAG 的
+ * 地块归属整体对调了：NHX(Orochoni＝鄂罗奇) 的地块被标成 EJZ、EJZ(Nanai＝赫哲) 的地块被标成 NHX，
+ * 导致玩家在地图上看到的这两个国名位置颠倒。此处按 TAG 令牌对调，把它们换回正确归属。
+ * 依据（游戏本体 localisation）：NHX:3 "Orochoni"、EJZ:2 "Nanai"；两 TAG 的地块集合完全互斥，
+ * 说明是成对互换。令牌只出现在 class 属性与对应的 CSS 选择器里，其余 563 个 TAG 不受影响。
+ * 注意：内置 SVG 与远程 SVG 两条路径都要经过这里，否则内嵌版会漏修。
+ */
+function fixSwappedTags(svgText) {
+  return svgText.replace(/\b(NHX|EJZ)\b/g, m => (m === 'NHX' ? 'EJZ' : 'NHX'));
+}
+
 async function loadMap() {
   try {
     let svgText;
@@ -464,6 +476,7 @@ async function loadMap() {
       const resp = await fetchWithRetry(SVG_URL, 'SVG 地图', 40000, 2);
       svgText = await resp.text();
     }
+    svgText = fixSwappedTags(svgText);
 
     loadingText.textContent = '正在解析地块...';
     const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
